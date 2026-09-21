@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { Subscription } from '../types';
 import { nanoid } from 'nanoid';
@@ -49,39 +49,30 @@ const calculateSaved = (subscriptions: Subscription[]) => {
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
+const STORAGE_KEY = 'subslayer-subscriptions';
+
+// 必须在首次渲染前同步读出：若放到 effect 里加载，保存用的 effect 会在同一批提交中
+// 把空的初始 state 写回 localStorage，StrictMode 二次执行时读到的已是被覆盖的 []，数据永久丢失。
+const loadSubscriptions = (): Subscription[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const storedSubscriptions = window.localStorage.getItem(STORAGE_KEY);
+    if (!storedSubscriptions) {
+      return [];
+    }
+    const parsedData = JSON.parse(storedSubscriptions);
+    return Array.isArray(parsedData) ? parsedData : [];
+  } catch (error) {
+    console.error('Failed to load subscriptions from localStorage:', error);
+    return [];
+  }
+};
+
 export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const isInitialized = useRef(false);
-
-  // 从 localStorage 加载数据
-  useEffect(() => {
-    // 确保在浏览器环境中运行
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    try {
-      const storedSubscriptions = localStorage.getItem('subslayer-subscriptions');
-      if (storedSubscriptions) {
-        try {
-          const parsedData = JSON.parse(storedSubscriptions);
-          if (Array.isArray(parsedData)) {
-            setSubscriptions(parsedData);
-          }
-        } catch (parseError) {
-          console.error('Failed to parse subscriptions from localStorage:', parseError);
-          // 解析失败时保持空数组
-        }
-      }
-    } catch (error) {
-      console.error('Failed to access localStorage:', error);
-      // 访问失败时保持空数组
-    } finally {
-      // 无论成功失败，都标记为已初始化
-      // 注意：即使没有读取到数据，也需要标记为已初始化，否则后续的写入会被阻止
-      isInitialized.current = true;
-    }
-  }, []);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>(loadSubscriptions);
 
   // 保存数据到 localStorage
   useEffect(() => {
@@ -90,13 +81,8 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
       return;
     }
 
-    // 防止空覆盖写入：如果未初始化，直接返回
-    if (!isInitialized.current) {
-      return;
-    }
-
     try {
-      localStorage.setItem('subslayer-subscriptions', JSON.stringify(subscriptions));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
     } catch (error) {
       console.error('Failed to save subscriptions to localStorage:', error);
       // 保存失败时不影响应用运行
@@ -136,10 +122,10 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     ));
   }, []);
 
-  const totalAnnualCost = calculateCost(subscriptions, 'annual');
-  const totalMonthlyCost = calculateCost(subscriptions, 'monthly');
-  const totalDailyCost = calculateCost(subscriptions, 'daily');
-  const totalSaved = calculateSaved(subscriptions);
+  const totalAnnualCost = useMemo(() => calculateCost(subscriptions, 'annual'), [subscriptions]);
+  const totalMonthlyCost = useMemo(() => calculateCost(subscriptions, 'monthly'), [subscriptions]);
+  const totalDailyCost = useMemo(() => calculateCost(subscriptions, 'daily'), [subscriptions]);
+  const totalSaved = useMemo(() => calculateSaved(subscriptions), [subscriptions]);
 
   return (
     <SubscriptionContext.Provider value={{

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSubscription } from '../store/SubscriptionContext';
 import type { ViewMode } from '../types';
 import { formatNumber, getRealityComparison } from '../lib/utils';
@@ -45,18 +45,6 @@ const DashboardHeader: React.FC = () => {
     const maxPossible = 10000; // 假设10000元为满分
     const index = Math.min(Math.round((totalAnnualCost / maxPossible) * 100), 100);
     return index;
-  };
-
-  const getCost = () => {
-    switch (viewMode) {
-      case 'monthly':
-        return totalMonthlyCost;
-      case 'daily':
-        return totalDailyCost;
-      case 'annual':
-      default:
-        return totalAnnualCost;
-    }
   };
 
   const getLabel = () => {
@@ -121,30 +109,47 @@ const DashboardHeader: React.FC = () => {
     return () => clearInterval(interval);
   }, [totalAnnualCost]);
 
-  const cost = getCost();
+  const cost = useMemo(
+    () =>
+      viewMode === 'monthly'
+        ? totalMonthlyCost
+        : viewMode === 'daily'
+          ? totalDailyCost
+          : totalAnnualCost,
+    [viewMode, totalAnnualCost, totalMonthlyCost, totalDailyCost]
+  );
 
-  // 动态增长动画
+  // 动态增长动画：起点用 ref 记录，只在目标值变化时跑一次
+  const animatedCostRef = useRef(0);
+
   useEffect(() => {
-    const targetCost = getCost();
-    const duration = 1000; // 动画持续时间
-    const startTime = Date.now();
-    const startValue = animatedCost;
+    const startValue = animatedCostRef.current;
+    if (startValue === cost) {
+      return;
+    }
 
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
+    const duration = 1000; // 动画持续时间
+    const startTime = performance.now();
+    let frame = 0;
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       // 使用缓动函数使动画更自然
       const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-      const currentValue = startValue + (targetCost - startValue) * easeOutCubic;
+      const currentValue = startValue + (cost - startValue) * easeOutCubic;
+      animatedCostRef.current = currentValue;
       setAnimatedCost(currentValue);
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        frame = requestAnimationFrame(animate);
       }
     };
 
-    animate();
-  }, [cost, viewMode, animatedCost, totalAnnualCost, totalMonthlyCost, totalDailyCost]);
+    frame = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(frame);
+  }, [cost]);
 
   // 获取金额对应的红色光效强度
   const getRedGlowStyle = () => {
