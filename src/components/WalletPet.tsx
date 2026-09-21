@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useSubscription } from '../store/SubscriptionContext';
+import { useSubscription } from '../store/useSubscription';
 import { calculateDaysUntilNextBilling, USD_TO_CNY_RATE } from '../lib/utils';
 import { derivePet } from '../lib/pet';
 import type { PetMood } from '../lib/pet';

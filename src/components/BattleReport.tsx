@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
-import { useSubscription } from '../store/SubscriptionContext';
+import { useSubscription } from '../store/useSubscription';
 
 const BattleReport: React.FC = () => {
   const { battleReport, dismissBattleReport } = useSubscription();

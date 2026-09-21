@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Subscription } from '../types';
-import { useSubscription } from '../store/SubscriptionContext';
+import { useSubscription } from '../store/useSubscription';
 import { Trash2, Calendar, ExternalLink, X, Swords, Skull, RotateCcw } from 'lucide-react';
 import { calculateDaysUntilNextBilling, truncateText, USD_TO_CNY_RATE } from '../lib/utils';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSubscription } from '../store/SubscriptionContext';
+import { useSubscription } from '../store/useSubscription';
 import { PlusCircle, X } from 'lucide-react';
 import { presetSubscriptions } from '../lib/constants';
 import { validateAmount } from '../lib/utils';

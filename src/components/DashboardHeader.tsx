@@ -1,20 +1,19 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useSubscription } from '../store/SubscriptionContext';
+import { useSubscription } from '../store/useSubscription';
 import type { ViewMode } from '../types';
 import { formatNumber, getRealityComparison } from '../lib/utils';
 
 const DashboardHeader: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('annual');
   const [animatedCost, setAnimatedCost] = useState<number>(0);
-  const [todayLost, setTodayLost] = useState<number>(0);
-  const [realityComparison, setRealityComparison] = useState<string>('');
+  const [now, setNow] = useState<Date>(() => new Date());
   const { totalAnnualCost, totalMonthlyCost, totalDailyCost, totalSaved } = useSubscription();
 
   // 获取会员称号和等级评价
   const getMemberTitle = (annualAmount: number, savedAmount: number) => {
     let title = '';
     let levelColor = '';
-    let hasMedal = savedAmount > 0;
+    const hasMedal = savedAmount > 0;
 
     if (annualAmount >= 10000) {
       title = '顶级大冤种';
@@ -71,43 +70,16 @@ const DashboardHeader: React.FC = () => {
     }
   };
 
-  // 计算每秒流失金额
-  const getPerSecondLoss = () => {
-    return totalAnnualCost / (365 * 24 * 60 * 60);
-  };
-
-  // 计算今日已流失金额
-  const calculateTodayLost = () => {
-    const now = new Date();
-    const secondsToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-    return getPerSecondLoss() * secondsToday;
-  };
-
-  // 实时流失计数器
+  // 只负责心跳，展示金额全部从 now 推导，不在 effect 里同步 setState
   useEffect(() => {
-    // 初始化今日已流失金额
-    setTodayLost(calculateTodayLost());
-
-    // 每秒更新今日已流失金额
-    const interval = setInterval(() => {
-      setTodayLost(calculateTodayLost());
-    }, 1000);
-
+    const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
-  }, [totalAnnualCost]);
+  }, []);
 
-  // 现实价值转换器 - 每5秒自动切换
-  useEffect(() => {
-    // 初始化现实价值文案
-    setRealityComparison(getRealityComparison(totalAnnualCost));
-
-    // 每5秒更新一次现实价值文案
-    const interval = setInterval(() => {
-      setRealityComparison(getRealityComparison(totalAnnualCost));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [totalAnnualCost]);
+  const perSecondLoss = totalAnnualCost / (365 * 24 * 60 * 60);
+  const todayLost =
+    perSecondLoss * (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
+  const realityComparison = getRealityComparison(totalAnnualCost);
 
   const cost = useMemo(
     () =>
@@ -188,7 +160,7 @@ const DashboardHeader: React.FC = () => {
           今日已流失 ¥{todayLost.toFixed(2)}
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          每小时流失 ¥{(getPerSecondLoss() * 3600).toFixed(2)}
+          每小时流失 ¥{(perSecondLoss * 3600).toFixed(2)}
         </p>
       </div>
 

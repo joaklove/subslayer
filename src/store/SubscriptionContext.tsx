@@ -1,31 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { Subscription } from '../types';
 import { nanoid } from 'nanoid';
 import { calculateNextBillingDate, USD_TO_CNY_RATE } from '../lib/utils';
-
-interface BattleReport {
-  title: string;
-  message: string;
-}
-
-interface SubscriptionContextType {
-  subscriptions: Subscription[];
-  addSubscription: (subscription: Omit<Subscription, 'id' | 'createdAt' | 'nextBillingDate'> & {
-    dayOfMonth?: number;
-    monthOfYear?: number;
-  }) => void;
-  updateSubscription: (id: string, updates: Partial<Subscription>) => void;
-  deleteSubscription: (id: string) => void;
-  markAsCancelled: (id: string) => void;
-  totalAnnualCost: number;
-  totalMonthlyCost: number;
-  totalDailyCost: number;
-  totalSaved: number;
-  battleReport: BattleReport | null;
-  showBattleReport: (title: string, message: string) => void;
-  dismissBattleReport: () => void;
-}
+import { SubscriptionContext } from './useSubscription';
+import type { BattleReport } from './useSubscription';
 
 const calculateCost = (subscriptions: Subscription[], mode: 'annual' | 'monthly' | 'daily') => {
   const annualCost = subscriptions
@@ -54,8 +33,6 @@ const calculateSaved = (subscriptions: Subscription[]) => {
       return total + (sub.billingCycle === 'monthly' ? amountInCNY * 12 : amountInCNY);
     }, 0);
 };
-
-const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'subslayer-subscriptions';
 
@@ -169,12 +146,4 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
       {children}
     </SubscriptionContext.Provider>
   );
-};
-
-export const useSubscription = () => {
-  const context = useContext(SubscriptionContext);
-  if (context === undefined) {
-    throw new Error('useSubscription must be used within a SubscriptionProvider');
-  }
-  return context;
 };

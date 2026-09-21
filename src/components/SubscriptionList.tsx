@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSubscription } from '../store/SubscriptionContext';
+import { useSubscription } from '../store/useSubscription';
 import SubscriptionCard from './SubscriptionCard';
 import { List, PlusCircle } from 'lucide-react';
 
