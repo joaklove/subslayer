@@ -24,6 +24,9 @@ const MOOD_CHIP: Record<PetMood, string> = {
   radiant: 'bg-blue-800 border-blue-500',
 };
 
+/** 同向飘出的粒子会叠成一团，用固定偏移把它们横向错开 */
+const PARTICLE_OFFSETS = [-16, 14, -6, 22];
+
 const WalletPet: React.FC = () => {
   const { subscriptions, totalMonthlyCost, totalSaved } = useSubscription();
 
@@ -59,7 +62,12 @@ const WalletPet: React.FC = () => {
           <span
             key={`${glyph}-${index}`}
             className="pet-particle absolute top-0 left-1/2 text-base"
-            style={{ animationDelay: `${index * 0.7}s` }}
+            style={
+              {
+                animationDelay: `${index * 0.7}s`,
+                '--pet-x': `${PARTICLE_OFFSETS[index % PARTICLE_OFFSETS.length]}px`,
+              } as React.CSSProperties
+            }
           >
             {glyph}
           </span>

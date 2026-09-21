@@ -30,9 +30,9 @@ body {
 }
 
 @keyframes pet-particle-rise {
-  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.7); }
+  0% { opacity: 0; transform: translate(calc(-50% + var(--pet-x, 0px)), 4px) scale(0.7); }
   25% { opacity: 0.95; }
-  100% { opacity: 0; transform: translate(-50%, -30px) scale(1.2); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--pet-x, 0px)), -30px) scale(1.2); }
 }
 
 @keyframes pet-shadow-pulse {

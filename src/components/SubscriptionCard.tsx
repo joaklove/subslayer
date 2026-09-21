@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Subscription } from '../types';
 import { useSubscription } from '../store/SubscriptionContext';
-import { Trash2, Calendar, DollarSign, ExternalLink, X, Swords, Skull, RotateCcw } from 'lucide-react';
+import { Trash2, Calendar, ExternalLink, X, Swords, Skull, RotateCcw } from 'lucide-react';
 import { calculateDaysUntilNextBilling, truncateText, USD_TO_CNY_RATE } from '../lib/utils';
 
 interface SubscriptionCardProps {
@@ -84,7 +84,6 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription }) => 
         <div>
           <h3 className="text-lg font-semibold text-light mb-2 truncate">{truncateText(subscription.name, 20)}</h3>
           <div className="flex items-center text-primary font-bold text-xl mb-2">
-            <DollarSign size={18} className="mr-1" />
             {subscription.currency === 'USD' ? '$' : '¥'}{subscription.amount}
             <span className="text-gray-400 text-sm font-normal ml-2">
               /{subscription.billingCycle === 'monthly' ? '月' : '年'}

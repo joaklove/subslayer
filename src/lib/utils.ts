@@ -71,11 +71,12 @@ export const formatAmount = (amount: number, currency: 'CNY' | 'USD') => {
 
 /**
  * 格式化大数字，添加千分位
+ * 最多保留 2 位小数：动画中间帧会把 4878.336 这种值直接推到界面上
  * @param num 数字
  * @returns 格式化后的数字字符串
  */
 export const formatNumber = (num: number) => {
-  return num.toLocaleString('zh-CN');
+  return num.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
 };
 
 /**
@@ -124,7 +125,9 @@ export const calculateDaysUntilNextBilling = (nextBillingDate: string) => {
  * @returns 对应的实物价值描述
  */
 export const getRealityComparison = (amount: number) => {
-  if (amount >= 8000) {
+  if (amount <= 0) {
+    return '目前没有正在流血的订阅。';
+  } else if (amount >= 8000) {
     return `这笔钱相当于一次出国游`;
   } else if (amount >= 3000) {
     return `这笔钱相当于一台最新手机`;
@@ -133,6 +136,6 @@ export const getRealityComparison = (amount: number) => {
   } else if (amount >= 30) {
     return `这笔钱相当于一杯星巴克`;
   } else {
-    return `这笔钱相当于${Math.floor(amount / 5)}顿午餐`;
+    return `这笔钱相当于${Math.max(1, Math.floor(amount / 5))}顿午餐`;
   }
 };

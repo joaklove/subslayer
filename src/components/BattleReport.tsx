@@ -3,13 +3,19 @@ import { CheckCircle } from 'lucide-react';
 import { useSubscription } from '../store/SubscriptionContext';
 
 const BattleReport: React.FC = () => {
-  const { battleReport } = useSubscription();
+  const { battleReport, dismissBattleReport } = useSubscription();
 
   if (!battleReport) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-dark rounded-xl border-2 border-green-500 p-6 max-w-md w-full text-center">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 cursor-pointer"
+      onClick={dismissBattleReport}
+    >
+      <div
+        className="bg-dark rounded-xl border-2 border-green-500 p-6 max-w-md w-full text-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-center mb-4 animate-pulse">
           <CheckCircle size={48} className="text-green-500" />
         </div>
@@ -26,6 +32,7 @@ const BattleReport: React.FC = () => {
             ))}
           </div>
         </div>
+        <p className="text-xs text-gray-500 mt-4">点击任意处关闭</p>
       </div>
     </div>
   );

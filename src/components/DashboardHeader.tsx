@@ -185,10 +185,10 @@ const DashboardHeader: React.FC = () => {
         </div>
         <p className="text-gray-400">{getLabel()}的订阅费用</p>
         <p className="text-xs text-red-400 mt-1 animate-pulse">
-          今日已流失 ¥{todayLost.toFixed(4)}
+          今日已流失 ¥{todayLost.toFixed(2)}
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          每秒流失 ¥{(getPerSecondLoss()).toFixed(6)}
+          每小时流失 ¥{(getPerSecondLoss() * 3600).toFixed(2)}
         </p>
       </div>
 

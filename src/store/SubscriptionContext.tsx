@@ -24,6 +24,7 @@ interface SubscriptionContextType {
   totalSaved: number;
   battleReport: BattleReport | null;
   showBattleReport: (title: string, message: string) => void;
+  dismissBattleReport: () => void;
 }
 
 const calculateCost = (subscriptions: Subscription[], mode: 'annual' | 'monthly' | 'daily') => {
@@ -87,7 +88,12 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   const showBattleReport = useCallback((title: string, message: string) => {
     window.clearTimeout(reportTimer.current);
     setBattleReport({ title, message });
-    reportTimer.current = window.setTimeout(() => setBattleReport(null), 3000);
+    reportTimer.current = window.setTimeout(() => setBattleReport(null), 5000);
+  }, []);
+
+  const dismissBattleReport = useCallback(() => {
+    window.clearTimeout(reportTimer.current);
+    setBattleReport(null);
   }, []);
 
   useEffect(() => () => window.clearTimeout(reportTimer.current), []);
@@ -158,6 +164,7 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
       totalSaved,
       battleReport,
       showBattleReport,
+      dismissBattleReport,
     }}>
       {children}
     </SubscriptionContext.Provider>
