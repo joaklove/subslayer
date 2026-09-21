@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import DashboardHeader from './components/DashboardHeader';
+import WalletPet from './components/WalletPet';
 import SubscriptionList from './components/SubscriptionList';
 import AddSubscriptionDialog from './components/AddSubscriptionDialog';
 import { PlusCircle } from 'lucide-react';
@@ -22,6 +23,7 @@ function App() {
       <div className="min-h-screen bg-gray-900 text-light">
         <div className="container mx-auto px-4 py-8 max-w-2xl">
           <DashboardHeader />
+          <WalletPet />
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">我的订阅</h2>

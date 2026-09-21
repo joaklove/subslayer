@@ -22,3 +22,48 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* 钱包小猪：CSS 驱动，避免被头部每秒重渲染打断 */
+@keyframes pet-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.06); }
+}
+
+@keyframes pet-particle-rise {
+  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.7); }
+  25% { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(-50%, -30px) scale(1.2); }
+}
+
+@keyframes pet-shadow-pulse {
+  0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.35; }
+  50% { transform: translateX(-50%) scaleX(0.72); opacity: 0.18; }
+}
+
+.pet-body {
+  animation-name: pet-breathe;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  transform-origin: 50% 80%;
+}
+
+.pet-particle {
+  animation: pet-particle-rise 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+.pet-shadow {
+  width: 34px;
+  height: 5px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.55);
+  animation: pet-shadow-pulse 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-body,
+  .pet-particle,
+  .pet-shadow {
+    animation: none;
+  }
+}
