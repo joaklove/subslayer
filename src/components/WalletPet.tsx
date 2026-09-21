@@ -43,6 +43,7 @@ const WalletPet: React.FC = () => {
 
     return derivePet({
       activeCount: active.length,
+      totalCount: subscriptions.length,
       monthlyCost: totalMonthlyCost,
       savedAnnual: totalSaved,
       nextBilling,

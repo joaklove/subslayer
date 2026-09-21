@@ -22,6 +22,7 @@ export interface PetState {
 
 export interface PetInput {
   activeCount: number;
+  totalCount: number;
   monthlyCost: number;
   savedAnnual: number;
   nextBilling: { name: string; days: number; amountCNY: number } | null;
@@ -49,6 +50,7 @@ const tierFor = (monthlyCost: number): PetMood => {
 
 export const derivePet = ({
   activeCount,
+  totalCount,
   monthlyCost,
   savedAnnual,
   nextBilling,
@@ -73,7 +75,10 @@ export const derivePet = ({
   if (mood === 'asleep') vitality = 100;
 
   const bubbleByMood: Record<PetMood, string> = {
-    asleep: '还没有订阅，我先睡了。加一条来叫醒我。',
+    asleep:
+      totalCount === 0
+        ? '还没有订阅，我先睡了。加一条来叫醒我。'
+        : `${totalCount} 个全被干掉了，我睡个安稳觉。`,
     content: `月均 ¥${money(monthlyCost)}，我还吃得饱。`,
     peckish: `月均 ¥${money(monthlyCost)}，我开始掉毛了。`,
     starving: `月均 ¥${money(monthlyCost)}，把我饿成存钱罐了。`,
