@@ -1,51 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Subscription } from '../types';
 import { useSubscription } from '../store/SubscriptionContext';
-import { Trash2, Calendar, DollarSign, XCircle, ExternalLink, X, CheckCircle } from 'lucide-react';
-import { calculateDaysUntilNextBilling, truncateText } from '../lib/utils';
+import { Trash2, Calendar, DollarSign, ExternalLink, X, Swords, Skull, RotateCcw } from 'lucide-react';
+import { calculateDaysUntilNextBilling, truncateText, USD_TO_CNY_RATE } from '../lib/utils';
 
 interface SubscriptionCardProps {
   subscription: Subscription;
 }
 
 const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription }) => {
-  const { deleteSubscription, markAsCancelled } = useSubscription();
+  const { deleteSubscription, markAsCancelled, updateSubscription, showBattleReport } = useSubscription();
   const [showToast, setShowToast] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [showHemostasisEffect, setShowHemostasisEffect] = useState(false);
-  const [hemostasisMessage, setHemostasisMessage] = useState('');
 
-  // 计算年度费用
-  const calculateAnnualCost = () => {
-    return subscription.billingCycle === 'monthly' ? subscription.amount * 12 : subscription.amount;
-  };
+  // 战利品一律折算成人民币，否则 $52.99/月 会被说成 ¥635
+  const annualCostCNY =
+    (subscription.currency === 'USD' ? subscription.amount * USD_TO_CNY_RATE : subscription.amount) *
+    (subscription.billingCycle === 'monthly' ? 12 : 1);
 
   const daysUntilNextBilling = calculateDaysUntilNextBilling(subscription.nextBillingDate);
 
+  const timersRef = useRef<number[]>([]);
+  const later = (action: () => void, ms: number) => {
+    const id = window.setTimeout(() => {
+      timersRef.current = timersRef.current.filter((t) => t !== id);
+      action();
+    }, ms);
+    timersRef.current.push(id);
+  };
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => timers.forEach((id) => window.clearTimeout(id));
+  }, []);
+
   const handleDelete = () => {
-    const annualCost = calculateAnnualCost();
-    // 立即执行删除操作，确保状态更新优先
+    showBattleReport('止血成功！', `你刚刚从巨头手里夺回了 ¥${annualCostCNY.toFixed(2)}/年。`);
     deleteSubscription(subscription.id);
-    // 显示止血特效
-    setHemostasisMessage(`止血成功！你刚刚从巨头手里夺回了 ¥${annualCost.toFixed(2)}/年。`);
-    setShowHemostasisEffect(true);
-    // 3秒后隐藏特效
-    setTimeout(() => {
-      setShowHemostasisEffect(false);
-    }, 3000);
   };
 
-  const handleMarkAsCancelled = () => {
-    const annualCost = calculateAnnualCost();
-    // 立即执行标记取消操作，确保状态更新优先
+  const handleKill = () => {
+    showBattleReport('击杀成功！', `¥${annualCostCNY.toFixed(2)}/年 从此不再从你兜里流血。`);
     markAsCancelled(subscription.id);
-    // 显示止血特效
-    setHemostasisMessage(`止血成功！你刚刚从巨头手里夺回了 ¥${annualCost.toFixed(2)}/年。`);
-    setShowHemostasisEffect(true);
-    // 3秒后隐藏特效
-    setTimeout(() => {
-      setShowHemostasisEffect(false);
-    }, 3000);
+  };
+
+  const handleRevive = () => {
+    updateSubscription(subscription.id, { status: 'active' });
   };
 
   const handleGoToCancel = () => {
@@ -53,8 +52,7 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription }) => 
       window.open(subscription.url, '_blank');
       // 显示Toast提示
       setShowToast(true);
-      // 3秒后自动隐藏
-      setTimeout(() => setShowToast(false), 3000);
+      later(() => setShowToast(false), 3000);
     } else {
       // 显示取消教程Dialog
       setShowCancelDialog(true);
@@ -102,37 +100,53 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription }) => 
         </button>
       </div>
 
-      <div className="flex items-center text-gray-400 text-sm mb-4">
-        <Calendar size={16} className="mr-2" />
-        <span>
-          距离下次扣款还有 {daysUntilNextBilling} 天
-        </span>
-      </div>
+      {subscription.status === 'active' ? (
+        <div className="flex items-center text-gray-400 text-sm mb-4">
+          <Calendar size={16} className="mr-2" />
+          <span>
+            距离下次扣款还有 {daysUntilNextBilling} 天
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center text-green-400 text-sm mb-4">
+          <Skull size={16} className="mr-2" />
+          <span>已停止流血，每年省下 ¥{annualCostCNY.toFixed(2)}</span>
+        </div>
+      )}
 
       <div className="flex space-x-2">
         {subscription.status === 'active' && (
           <>
             <button
-              onClick={handleMarkAsCancelled}
-              className="flex-1 px-3 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center"
+              onClick={handleKill}
+              className="flex-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center font-semibold"
             >
-              <XCircle size={16} className="mr-1" />
-              已取消
+              <Swords size={16} className="mr-1" />
+              干掉它
             </button>
             <button
               onClick={handleGoToCancel}
-              className="px-3 py-2 bg-secondary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+              className="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+              title="去官网管理自动续费"
             >
-              <ExternalLink size={16} className="mr-1" />
-              去取消
+              <ExternalLink size={16} />
             </button>
           </>
         )}
         {subscription.status === 'cancelled' && (
-          <div className="flex-1 px-3 py-2 bg-gray-800 text-green-400 rounded-lg flex items-center justify-center">
-            <XCircle size={16} className="mr-1" />
-            已取消
-          </div>
+          <>
+            <div className="flex-1 px-3 py-2 bg-gray-800 text-green-400 rounded-lg border border-green-700 flex items-center justify-center">
+              <Skull size={16} className="mr-1" />
+              已击杀
+            </div>
+            <button
+              onClick={handleRevive}
+              className="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+              title="误杀了？让它复活"
+            >
+              <RotateCcw size={16} />
+            </button>
+          </>
         )}
       </div>
 
@@ -168,30 +182,6 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription }) => 
                 >
                   我知道了
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 止血特效 */}
-      {showHemostasisEffect && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-dark rounded-xl border-2 border-green-500 p-6 max-w-md w-full text-center">
-            <div className="flex justify-center mb-4 animate-pulse">
-              <CheckCircle size={48} className="text-green-500" />
-            </div>
-            <h3 className="text-xl font-bold text-green-400 mb-2">止血成功！</h3>
-            <p className="text-light mb-6">{hemostasisMessage}</p>
-            <div className="flex justify-center">
-              <div className="grid grid-cols-3 gap-2">
-                {[...Array(9)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="w-8 h-8 bg-green-500 rounded animate-bounce"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  />
-                ))}
               </div>
             </div>
           </div>

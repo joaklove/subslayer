@@ -1,8 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { Subscription } from '../types';
 import { nanoid } from 'nanoid';
 import { calculateNextBillingDate, USD_TO_CNY_RATE } from '../lib/utils';
+
+interface BattleReport {
+  title: string;
+  message: string;
+}
 
 interface SubscriptionContextType {
   subscriptions: Subscription[];
@@ -17,6 +22,8 @@ interface SubscriptionContextType {
   totalMonthlyCost: number;
   totalDailyCost: number;
   totalSaved: number;
+  battleReport: BattleReport | null;
+  showBattleReport: (title: string, message: string) => void;
 }
 
 const calculateCost = (subscriptions: Subscription[], mode: 'annual' | 'monthly' | 'daily') => {
@@ -73,6 +80,17 @@ const loadSubscriptions = (): Subscription[] => {
 
 export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(loadSubscriptions);
+  const [battleReport, setBattleReport] = useState<BattleReport | null>(null);
+  const reportTimer = useRef<number>(0);
+
+  // 战报必须渲染在列表之上：删除会让卡片自身卸载，写在卡片里的弹窗永远没机会出现
+  const showBattleReport = useCallback((title: string, message: string) => {
+    window.clearTimeout(reportTimer.current);
+    setBattleReport({ title, message });
+    reportTimer.current = window.setTimeout(() => setBattleReport(null), 3000);
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(reportTimer.current), []);
 
   // 保存数据到 localStorage
   useEffect(() => {
@@ -138,6 +156,8 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
       totalMonthlyCost,
       totalDailyCost,
       totalSaved,
+      battleReport,
+      showBattleReport,
     }}>
       {children}
     </SubscriptionContext.Provider>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import DashboardHeader from './components/DashboardHeader';
 import WalletPet from './components/WalletPet';
+import BattleReport from './components/BattleReport';
 import SubscriptionList from './components/SubscriptionList';
 import AddSubscriptionDialog from './components/AddSubscriptionDialog';
 import { PlusCircle } from 'lucide-react';
@@ -48,6 +49,7 @@ function App() {
             <p className="mt-2">数据仅保存在本地设备，保护您的隐私</p>
           </footer>
         </div>
+        <BattleReport />
       </div>
     </SubscriptionProvider>
   );
