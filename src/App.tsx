@@ -5,11 +5,13 @@ import WalletPet from './components/WalletPet';
 import BattleReport from './components/BattleReport';
 import SubscriptionList from './components/SubscriptionList';
 import AddSubscriptionDialog from './components/AddSubscriptionDialog';
+import WrappedDialog from './components/WrappedDialog';
 import { PlusCircle } from 'lucide-react';
 import { SubscriptionProvider } from './store/SubscriptionContext';
 
 function App() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isWrappedOpen, setIsWrappedOpen] = useState(false);
 
   const handleAddClick = () => {
     setIsAddDialogOpen(true);
@@ -23,7 +25,7 @@ function App() {
     <SubscriptionProvider>
       <div className="min-h-screen bg-gray-900 text-light">
         <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <DashboardHeader />
+          <DashboardHeader onShare={() => setIsWrappedOpen(true)} />
           <WalletPet />
           
           <div className="flex justify-between items-center mb-4">
@@ -43,7 +45,11 @@ function App() {
             isOpen={isAddDialogOpen} 
             onClose={handleCloseAddDialog} 
           />
-          
+
+          {isWrappedOpen && (
+            <WrappedDialog onClose={() => setIsWrappedOpen(false)} />
+          )}
+
           <footer className="mt-12 text-center text-gray-500 text-sm">
             <p>© 2026 订阅刺客 (SubSlayer)</p>
             <p className="mt-2">数据仅保存在本地设备，保护您的隐私</p>

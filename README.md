@@ -11,6 +11,7 @@
 - **钱包小猪**：一只情绪完全由你的真实花费推导的电子宠物。花得越多它越蔫，砍掉订阅它就回血。
 - **干掉它 / 复活**：一键把订阅标记为已取消，弹出战报告诉你每年省下多少人民币（美元按固定汇率折算）。误杀可以复活。
 - **去官网**：有网页管理入口的平台直接跳到会员中心/账单页；没有入口的给出微信、支付宝关闭自动续费的详细路径。
+- **年度止血海报**：用 Canvas 现场画一张 1080×1350 的竖版报告卡（在流血/已干掉/已省下/最贵刺客/判词），下载 PNG 或复制文案都能直接分享，不接任何第三方服务。
 
 ## 快速开始
 
@@ -40,12 +41,14 @@ src/
 │   ├── SubscriptionList.tsx   # 列表与空状态
 │   ├── SubscriptionCard.tsx   # 单条订阅：干掉它 / 复活 / 去官网 / 删除
 │   ├── BattleReport.tsx       # 击杀战报弹窗（渲染在应用层）
+│   ├── WrappedDialog.tsx      # Canvas 年度海报：绘制 + 下载 PNG + 复制文案
 │   └── AddSubscriptionDialog.tsx
 ├── store/
 │   ├── SubscriptionContext.tsx  # Provider：状态、持久化、派生总额
 │   └── useSubscription.ts       # Context 对象与消费 hook
 ├── lib/
 │   ├── pet.ts                 # 纯函数：花费 → 宠物情绪
+│   ├── wrapped.ts             # 纯函数：订阅列表 → 年度统计与判词
 │   ├── utils.ts               # 日期、金额、汇率、现实换算
 │   └── constants.ts           # 预设订阅
 └── types/index.ts             # Subscription 等类型
@@ -103,7 +106,7 @@ interface Subscription {
 
 ## 已知缺口
 
-- 头部写着"点击右上角分享我的止血成就"，但分享卡片还没实现。
+- 海报上的判词只有 6 档固定文案，还没有按月份、按平台做更细的年度回顾。
 - 预设订阅里的 `icon` 是 simple-icons 的 slug，目前没有任何地方渲染它。
 - `zustand` 在依赖里，但状态管理实际用的是 React Context。
 - 项目没有自动化测试，改动靠 `tsc` + ESLint + 构建 + 手动验证兜底。

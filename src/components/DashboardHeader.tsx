@@ -2,8 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSubscription } from '../store/useSubscription';
 import type { ViewMode } from '../types';
 import { formatNumber, getRealityComparison } from '../lib/utils';
+import { Share2 } from 'lucide-react';
 
-const DashboardHeader: React.FC = () => {
+interface DashboardHeaderProps {
+  onShare: () => void;
+}
+
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onShare }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('annual');
   const [animatedCost, setAnimatedCost] = useState<number>(0);
   const [now, setNow] = useState<Date>(() => new Date());
@@ -179,9 +184,16 @@ const DashboardHeader: React.FC = () => {
         ))}
       </div>
 
-      {/* 社交分享预留 */}
-      <div className="text-center text-xs text-gray-500 mt-2">
-        我的大冤种指数：{冤种指数}%，点击右上角分享我的止血成就。
+      {/* 年度止血海报 */}
+      <div className="text-center mt-2">
+        <p className="text-xs text-gray-500 mb-3">我的大冤种指数：{冤种指数}%</p>
+        <button
+          onClick={onShare}
+          className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-light transition-colors text-sm"
+        >
+          <Share2 size={16} className="mr-2" />
+          生成我的年度止血海报
+        </button>
       </div>
     </div>
   );
