@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useSubscription } from '../store/useSubscription';
+import { useTheme } from '../store/useTheme';
 import { calculateDaysUntilNextBilling, USD_TO_CNY_RATE } from '../lib/utils';
 import { derivePet } from '../lib/pet';
 import type { PetMood } from '../lib/pet';
@@ -29,6 +30,7 @@ const PARTICLE_OFFSETS = [-16, 14, -6, 22];
 
 const WalletPet: React.FC = () => {
   const { subscriptions, totalMonthlyCost, totalSaved } = useSubscription();
+  const { theme } = useTheme();
 
   const pet = useMemo(() => {
     const active = subscriptions.filter((sub) => sub.status === 'active');
@@ -104,7 +106,13 @@ const WalletPet: React.FC = () => {
             className="h-full rounded-full transition-all duration-700"
             style={{
               width: `${pet.vitality}%`,
-              backgroundColor: pet.vitality > 60 ? '#22c55e' : pet.vitality > 30 ? '#eab308' : '#ef4444',
+              // 血条也跟随配色，否则换主题后这里会残留一条旧色
+              backgroundColor:
+                pet.vitality > 60
+                  ? theme.colors['green-400']
+                  : pet.vitality > 30
+                    ? theme.colors['yellow-400']
+                    : theme.colors.primary,
             }}
           />
         </div>

@@ -6,8 +6,10 @@ import BattleReport from './components/BattleReport';
 import SubscriptionList from './components/SubscriptionList';
 import AddSubscriptionDialog from './components/AddSubscriptionDialog';
 import WrappedDialog from './components/WrappedDialog';
+import ThemePicker from './components/ThemePicker';
 import { PlusCircle } from 'lucide-react';
 import { SubscriptionProvider } from './store/SubscriptionContext';
+import { ThemeProvider } from './store/ThemeContext';
 
 function App() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -22,42 +24,45 @@ function App() {
   };
 
   return (
-    <SubscriptionProvider>
-      <div className="min-h-screen bg-gray-900 text-light">
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <DashboardHeader onShare={() => setIsWrappedOpen(true)} />
-          <WalletPet />
-          
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">我的订阅</h2>
-            <button
-              onClick={handleAddClick}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center"
-            >
-              <PlusCircle size={18} className="mr-2" />
-              添加订阅
-            </button>
+    <ThemeProvider>
+      <SubscriptionProvider>
+        <div className="min-h-screen bg-gray-900 text-light">
+          <div className="container mx-auto px-4 py-8 max-w-2xl">
+            <ThemePicker />
+            <DashboardHeader onShare={() => setIsWrappedOpen(true)} />
+            <WalletPet />
+
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">我的订阅</h2>
+              <button
+                onClick={handleAddClick}
+                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center"
+              >
+                <PlusCircle size={18} className="mr-2" />
+                添加订阅
+              </button>
+            </div>
+
+            <SubscriptionList onAddClick={handleAddClick} />
+
+            <AddSubscriptionDialog
+              isOpen={isAddDialogOpen}
+              onClose={handleCloseAddDialog}
+            />
+
+            {isWrappedOpen && (
+              <WrappedDialog onClose={() => setIsWrappedOpen(false)} />
+            )}
+
+            <footer className="mt-12 text-center text-gray-500 text-sm">
+              <p>© 2026 订阅刺客 (SubSlayer)</p>
+              <p className="mt-2">数据仅保存在本地设备，保护您的隐私</p>
+            </footer>
           </div>
-          
-          <SubscriptionList onAddClick={handleAddClick} />
-          
-          <AddSubscriptionDialog 
-            isOpen={isAddDialogOpen} 
-            onClose={handleCloseAddDialog} 
-          />
-
-          {isWrappedOpen && (
-            <WrappedDialog onClose={() => setIsWrappedOpen(false)} />
-          )}
-
-          <footer className="mt-12 text-center text-gray-500 text-sm">
-            <p>© 2026 订阅刺客 (SubSlayer)</p>
-            <p className="mt-2">数据仅保存在本地设备，保护您的隐私</p>
-          </footer>
+          <BattleReport />
         </div>
-        <BattleReport />
-      </div>
-    </SubscriptionProvider>
+      </SubscriptionProvider>
+    </ThemeProvider>
   );
 }
 

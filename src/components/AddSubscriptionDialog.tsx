@@ -3,6 +3,8 @@ import { useSubscription } from '../store/useSubscription';
 import { PlusCircle, X } from 'lucide-react';
 import { presetSubscriptions } from '../lib/constants';
 import { validateAmount } from '../lib/utils';
+import { slugFromName } from '../lib/brands';
+import BrandIcon from './BrandIcon';
 
 interface AddSubscriptionDialogProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
   const [dayOfMonth, setDayOfMonth] = useState<number>(new Date().getDate());
   const [monthOfYear, setMonthOfYear] = useState<number>(new Date().getMonth() + 1);
   const [url, setUrl] = useState('');
+  const [icon, setIcon] = useState<string | undefined>(undefined);
   const [errors, setErrors] = useState<{
     name?: string;
     amount?: string;
@@ -65,6 +68,8 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
       billingCycle,
       status: 'active',
       url: url || undefined,
+      // 手动输入的名字也尽量认出品牌，认不出就交给分类图标兜底
+      icon: icon ?? slugFromName(name),
       dayOfMonth,
       monthOfYear: billingCycle === 'yearly' ? monthOfYear : undefined,
     });
@@ -77,6 +82,7 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
     setDayOfMonth(new Date().getDate());
     setMonthOfYear(new Date().getMonth() + 1);
     setUrl('');
+    setIcon(undefined);
     setErrors({});
 
     onClose();
@@ -88,6 +94,7 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
     setCurrency(preset.currency);
     setBillingCycle(preset.billingCycle);
     setUrl(preset.url || '');
+    setIcon(preset.icon);
   };
 
   if (!isOpen) {
@@ -96,7 +103,12 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-dark rounded-xl border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="添加订阅"
+        className="bg-dark rounded-xl border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto"
+      >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-light flex items-center">
@@ -105,13 +117,48 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
             </h2>
             <button
               onClick={onClose}
+              aria-label="关闭"
               className="text-gray-400 hover:text-light transition-colors"
             >
               <X size={20} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="mb-6 space-y-4">
+          {/* 预设放在表单之前：绝大多数人是从这十二个里挑一个，不该让他们先滚过整张表单 */}
+          <div className="mb-6">
+            <div className="flex items-baseline justify-between mb-3">
+              <h3 className="text-sm font-semibold text-light">常用订阅</h3>
+              <span className="text-xs text-gray-500">点一下自动填好，还能改</span>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {presetSubscriptions.map((preset) => (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() => handlePresetSelect(preset)}
+                  className={`rounded-lg border p-2.5 transition-colors flex flex-col items-center text-center ${
+                    icon === preset.icon
+                      ? 'bg-gray-700 border-primary'
+                      : 'bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-gray-600'
+                  }`}
+                >
+                  <BrandIcon slug={preset.icon} name={preset.name} size={36} className="mb-1.5" />
+                  <span className="text-xs text-gray-300 truncate w-full">{preset.name}</span>
+                  <span className="text-xs text-primary">
+                    {preset.currency === 'USD' ? '$' : '¥'}{preset.amount}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 mb-4">
+            <span className="h-px flex-1 bg-gray-700" />
+            <span className="text-xs text-gray-500">或者手动填写</span>
+            <span className="h-px flex-1 bg-gray-700" />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="mb-4">
               <label className="block text-gray-300 mb-2">服务名称</label>
               <input
@@ -119,6 +166,7 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
+                  setIcon(undefined);
                   if (errors.name) {
                     setErrors({ ...errors, name: undefined });
                   }
@@ -277,27 +325,6 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({ isOpen, o
               </button>
             </div>
           </form>
-
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold text-light mb-4">常用订阅</h3>
-            <div className="grid grid-cols-4 md:grid-cols-4 sm:grid-cols-3 gap-3">
-              {presetSubscriptions.map((preset) => (
-                <button
-                  key={preset.name}
-                  onClick={() => handlePresetSelect(preset)}
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-3 hover:bg-gray-700 transition-colors flex flex-col items-center text-center"
-                >
-                  <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                    <span className="text-light font-bold">{preset.name.charAt(0)}</span>
-                  </div>
-                  <span className="text-sm text-gray-300 truncate w-full">{preset.name}</span>
-                  <span className="text-xs text-primary">
-                    {preset.currency === 'USD' ? '$' : '¥'}{preset.amount}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

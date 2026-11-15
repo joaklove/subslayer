@@ -3,6 +3,7 @@ import type { Subscription } from '../types';
 import { useSubscription } from '../store/useSubscription';
 import { Trash2, Calendar, ExternalLink, X, Swords, Skull, RotateCcw } from 'lucide-react';
 import { calculateDaysUntilNextBilling, truncateText, USD_TO_CNY_RATE } from '../lib/utils';
+import BrandIcon from './BrandIcon';
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -81,13 +82,21 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription }) => 
   return (
     <div className={`bg-dark rounded-lg p-4 border ${subscription.status === 'cancelled' ? 'border-gray-700 opacity-70' : 'border-gray-600'} mb-3 relative`}>
       <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-light mb-2 truncate">{truncateText(subscription.name, 20)}</h3>
-          <div className="flex items-center text-primary font-bold text-xl mb-2">
-            {subscription.currency === 'USD' ? '$' : '¥'}{subscription.amount}
-            <span className="text-gray-400 text-sm font-normal ml-2">
-              /{subscription.billingCycle === 'monthly' ? '月' : '年'}
-            </span>
+        <div className="flex items-start gap-3 min-w-0">
+          <BrandIcon
+            slug={subscription.icon}
+            name={subscription.name}
+            size={44}
+            dimmed={subscription.status === 'cancelled'}
+          />
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold text-light mb-2 truncate">{truncateText(subscription.name, 20)}</h3>
+            <div className="flex items-center text-primary font-bold text-xl mb-2">
+              {subscription.currency === 'USD' ? '$' : '¥'}{subscription.amount}
+              <span className="text-gray-400 text-sm font-normal ml-2">
+                /{subscription.billingCycle === 'monthly' ? '月' : '年'}
+              </span>
+            </div>
           </div>
         </div>
         <button
@@ -159,7 +168,12 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription }) => 
       {/* 取消教程 Dialog */}
       {showCancelDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-dark rounded-xl border border-gray-700 w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="取消订阅教程"
+            className="bg-dark rounded-xl border border-gray-700 w-full max-w-md max-h-[80vh] overflow-y-auto"
+          >
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold text-light flex items-center">

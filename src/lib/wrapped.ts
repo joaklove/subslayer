@@ -1,4 +1,5 @@
 import type { Subscription } from '../types';
+import type { YearReview } from './review';
 import { getRealityComparison, USD_TO_CNY_RATE } from './utils';
 
 /** 一条订阅一年要从兜里走掉多少人民币 */
@@ -77,7 +78,7 @@ const money = (n: number) =>
   n.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
 
 /** 复制出去的那段话，没有 canvas 也能分享 */
-export const buildWrappedText = (summary: WrappedSummary) => {
+export const buildWrappedText = (summary: WrappedSummary, review?: YearReview) => {
   const parts = [
     summary.activeCount > 0
       ? `我在订阅刺客记了 ${summary.activeCount} 条订阅，一年还在被吸走 ¥${money(summary.bleedingAnnual)}`
@@ -87,8 +88,16 @@ export const buildWrappedText = (summary: WrappedSummary) => {
     parts.push(`已经砍掉 ${summary.killedCount} 条、省下 ¥${money(summary.savedAnnual)}/年`);
   }
   if (summary.priciest) {
-    parts.push(`最贵的刺客是 ${summary.priciest.name}（¥${money(summary.priciest.annualCNY)}/年）`);
+    const share = review?.platforms[0]?.share;
+    const shareText = share ? `，占 ${share.toFixed(0)}%` : '';
+    parts.push(
+      `最贵的刺客是 ${summary.priciest.name}（¥${money(summary.priciest.annualCNY)}/年${shareText}）`
+    );
+  }
+  if (review?.peakMonth && review.peakMonth.totalCNY > 0) {
+    parts.push(`未来一年最狠的是 ${review.peakMonth.label}，要扣 ¥${money(review.peakMonth.totalCNY)}`);
   }
   parts.push(summary.reality);
-  return `${parts.join('，')}。—— 订阅刺客 SubSlayer`;
+  const verdict = review?.insights[0]?.text ?? summary.headline;
+  return `${parts.join('，')}。${verdict} —— 订阅刺客 SubSlayer`;
 };

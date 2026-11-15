@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSubscription } from '../store/useSubscription';
+import { useTheme } from '../store/useTheme';
 import type { ViewMode } from '../types';
 import { formatNumber, getRealityComparison } from '../lib/utils';
+import { hexToRgb } from '../lib/themes';
 import { Share2 } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -13,6 +15,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onShare }) => {
   const [animatedCost, setAnimatedCost] = useState<number>(0);
   const [now, setNow] = useState<Date>(() => new Date());
   const { totalAnnualCost, totalMonthlyCost, totalDailyCost, totalSaved } = useSubscription();
+  const { theme } = useTheme();
 
   // 获取会员称号和等级评价
   const getMemberTitle = (annualAmount: number, savedAmount: number) => {
@@ -125,15 +128,26 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onShare }) => {
 
     frame = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(frame);
+    // 后台标签页里 rAF 被浏览器挂起，页面上最重要的那个数字不能一直停在 ¥0。
+    // 这个兜底定时器保证它最迟也会落到真实值；前台正常跑完时只是重复写入同一个数。
+    const guard = window.setTimeout(() => {
+      animatedCostRef.current = cost;
+      setAnimatedCost(cost);
+    }, duration + 120);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(guard);
+    };
   }, [cost]);
 
-  // 获取金额对应的红色光效强度
+  // 获取金额对应的主色光效强度
   const getRedGlowStyle = () => {
     const intensity = Math.min(totalAnnualCost / 10000, 1); // 最大强度为1
     const blurRadius = 10 + intensity * 20; // 模糊半径随强度增加
+    const [r, g, b] = hexToRgb(theme.colors.primary);
     return {
-      textShadow: `0 0 ${blurRadius}px rgba(255, 0, 0, ${0.3 + intensity * 0.7})`
+      textShadow: `0 0 ${blurRadius}px rgba(${r}, ${g}, ${b}, ${0.3 + intensity * 0.7})`
     };
   };
 

@@ -3,13 +3,11 @@
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #1e293b;
+  color-scheme: dark;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -21,6 +19,34 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  /* JS 注入主题前的兜底底色，避免首帧闪白 */
+  background-color: rgb(var(--c-gray-900, 17 24 39));
+  color: rgb(var(--c-light, 248 250 252));
+}
+
+/* 滚动条跟着主题走，不留浏览器默认的灰条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-gray-600, 75 85 99)) rgb(var(--c-gray-900, 17 24 39));
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--c-gray-900, 17 24 39));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-gray-600, 75 85 99));
+  border-radius: 9999px;
+  border: 2px solid rgb(var(--c-gray-900, 17 24 39));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--c-primary, 239 68 68));
 }
 
 /* 钱包小猪：CSS 驱动，避免被头部每秒重渲染打断 */
@@ -60,10 +86,42 @@ body {
   animation: pet-shadow-pulse 3s ease-in-out infinite;
 }
 
+/* 入场与切换：只动 transform/opacity，不触发重排 */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rise-in {
+  animation: rise-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes poster-swap {
+  from { opacity: 0; transform: scale(0.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.poster-swap {
+  animation: poster-swap 0.28s ease-out both;
+}
+
+@keyframes bar-grow {
+  from { transform: scaleY(0.02); }
+  to { transform: scaleY(1); }
+}
+
+.bar-grow {
+  transform-origin: bottom;
+  animation: bar-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pet-body,
   .pet-particle,
-  .pet-shadow {
+  .pet-shadow,
+  .rise-in,
+  .poster-swap,
+  .bar-grow {
     animation: none;
   }
 }
